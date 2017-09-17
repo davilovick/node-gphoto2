@@ -350,9 +350,12 @@ void GPCamera::downloadPicture(take_picture_request *req) {
 
   retval = getCameraFile(req, &file);
 
+  CameraFileType fileType;
+  fileType = req->thumbnail ? GP_FILE_TYPE_PREVIEW : GP_FILE_TYPE_NORMAL;
+
   if (retval == GP_OK) {
     retval = gp_camera_file_get(req->camera, folder.str().c_str(), name.c_str(),
-                                GP_FILE_TYPE_NORMAL, file, req->context);
+                                fileType, file, req->context);
   } else {
     req->ret = retval;
     return;
@@ -362,6 +365,7 @@ void GPCamera::downloadPicture(take_picture_request *req) {
   if (retval == GP_OK &&
       req->target_path.empty() &&
       req->socket_path.empty()) {
+    printf("Falling back to buffer download...\n");
     retval = gp_file_get_data_and_size(file, &data, &req->length);
     if (retval == GP_OK && req->length != 0) {
       /* `gp_file_free` will call `free` on `file->data` pointer, save data */
@@ -371,9 +375,11 @@ void GPCamera::downloadPicture(take_picture_request *req) {
     data = NULL;
   }
 
-  if (retval == GP_OK) {
+  if (retval == GP_OK && !req->keepOnCamera) {
+    printf("(node-gphoto2) removing image from camera (%s/%s)...", folder.str().c_str(), name.c_str());
     retval = gp_camera_file_delete(req->camera, folder.str().c_str(),
                                    name.c_str(), req->context);
+    printf("done (%d).\n", retval);
   }
 
   gp_file_free(file);

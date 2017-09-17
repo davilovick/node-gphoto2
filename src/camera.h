@@ -69,6 +69,9 @@ class GPCamera : public Nan::ObjectWrap {
     int ret;
     bool download;
     bool preview;
+    bool keepOnCamera;
+    bool thumbnail;
+
     std::string path;
     std::string target_path;
     std::string socket_path;

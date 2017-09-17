@@ -55,36 +55,54 @@ NAN_METHOD(GPCamera::TakePicture) {
         picture_req = new take_picture_request();
         picture_req->file = NULL;
         picture_req->preview = false;
+        picture_req->keepOnCamera = false;
+        picture_req->thumbnail = false;
         picture_req->cb.Reset(cb);
 
-
         v8::Local<v8::Value> targVal = options->Get(Nan::New("targetPath").ToLocalChecked());
+        v8::Local<v8::Value> sktVal = options->Get(Nan::New("socket").ToLocalChecked());
+        v8::Local<v8::Value> dlVal = options->Get(Nan::New("download").ToLocalChecked());
+        v8::Local<v8::Value> preVal = options->Get(Nan::New("preview").ToLocalChecked());
+        v8::Local<v8::Value> keepVal = options->Get(Nan::New("keepOnCamera").ToLocalChecked());
+        v8::Local<v8::Value> thumbVal = options->Get(Nan::New("thumbnail").ToLocalChecked());
+        
+        
         if (targVal->IsString()) {
             Nan::Utf8String targetPath(targVal->ToString());
             picture_req->target_path = std::string(*targetPath);
             picture_req->download = true;
         }
-
-        v8::Local<v8::Value> sktVal = options->Get(Nan::New("socket").ToLocalChecked());
+        
         if (sktVal->IsString()) {
             Nan::Utf8String socketPath(sktVal->ToString());
             picture_req->socket_path = std::string(*socketPath);
             picture_req->download = true;
         }
 
-        v8::Local<v8::Value> dlVal = options->Get(Nan::New("download").ToLocalChecked());
         if (dlVal->IsBoolean()) {
             picture_req->download = dlVal->ToBoolean()->Value();
         }
 
-        v8::Local<v8::Value> preVal = options->Get(Nan::New("preview").ToLocalChecked());
         if (preVal->IsBoolean()) {
             picture_req->preview = preVal->ToBoolean()->Value();
         }
+
+        if(keepVal->IsBoolean())
+        {
+            picture_req->keepOnCamera = keepVal->ToBoolean()->Value();
+        }
+
+        if(thumbVal->IsBoolean())
+        {
+            picture_req->thumbnail = thumbVal->ToBoolean()->Value();
+        }
+
     } else {
         REQ_FUN_ARG(0, cb);
         picture_req = new take_picture_request();
         picture_req->preview = false;
+        picture_req->keepOnCamera = false;   
+        picture_req->thumbnail = false;        
         picture_req->cb.Reset(cb);
         picture_req->file = NULL;
     }
